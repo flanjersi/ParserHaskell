@@ -1,7 +1,7 @@
 import  Text.Parsec
 import Data.Char
 import Expression
-type  Parser a = Parsec  String  () a
+type  Parser a = Parsec String () a
 
 minusChar = char '-'
 plusChar = char '+'
@@ -11,16 +11,20 @@ lpar = char '('
 rpar = char ')'
 
 expr ::  Parser Expr
-expr = try add <|> mult <|> pow <|> minus <|> constante <|> var
+expr = try add <|> mult <|> pow <|> minus <|> var
 
 -- Fonction venant de : https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/parsing-floats-with-parsec
+
+number = many1 digit
+plus   = char '+' *> number
+minus2  = (:) <$> char '-' <*> number
+integer = plus <|> minus2 <|> number
+decimal = option "" $ (:) <$> char '.' <*> number
+
 readConstante :: Parser Float
-readConstante =
-    rd <$> (plus <|> minus <|> number)
-    where rd     = read :: String -> Float
-          plus   = char '+' *> number
-          minus  = (:) <$> char '-' <*> number
-          number = (:) <$> many1 digit <*> char '.' <*> many1 digit
+readConstante = fmap rd $ (++) <$> integer <*> decimal
+        where rd = read :: String -> Float
+
 constante :: Parser Expr
 constante = do
     x <- readConstante
