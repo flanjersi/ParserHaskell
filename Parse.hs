@@ -8,19 +8,21 @@ type  Parser a = Parsec String () a
 
 
 ------------------------ Variables pour le parseur --------------------------------
-minusChar = char '-'
-plusChar = char '+'
-multChar = char '*'
-powChar = char '^'
-lpar = char '('
-rpar = char ')'
+minusChar = string "-"
+plusChar = string "+"
+multChar = string "*"
+powChar = string "^"
+lpar = string "("
+rpar = string ")"
+-- sinString = string "sin"
 
-uniChar = minusChar
+uniChar = minusChar -- <|> sinString
 binChar = plusChar <|> multChar <|> powChar
 ---------------------------------- Parseur ----------------------------------------
 
 expr ::  Parser Expr
 expr = try bin <|> uni <|> constante <|> var
+
 bin :: Parser Expr
 bin = do
     lpar

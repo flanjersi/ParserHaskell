@@ -8,10 +8,6 @@ module Expression where
 5. Op2 & Op1 en tant que class ?
 -}
 
--- data Op1 = Op1 {
-    -- name :: Char
-    -- operator :: (a -> a)
--- }
 ------------------------ Expr ---------------------------
 
 data Expr = Const Float
@@ -20,7 +16,7 @@ data Expr = Const Float
     | Bin Op2 Expr Expr
     deriving Show
 
-data Op1 = Minus deriving Show
+data Op1 = Minus | Sin deriving Show
 data Op2 = Add | Mult | Pow deriving Show
 
 --Helpers
@@ -34,14 +30,16 @@ getOperatorFromOp2 op = case op of
     Mult -> (*)
     Pow -> (**)
     
+getUniOp :: String -> Op1
 getUniOp op = case op of
-    minusChar -> Minus
+    "-" -> Minus
+    -- "sin" -> Sin
 
-getBinOp :: Char -> Op2
+getBinOp :: String -> Op2
 getBinOp op = case op of
-    '+' -> Add
-    '*' -> Mult
-    '^' -> Pow
+    "+" -> Add
+    "*" -> Mult
+    "^" -> Pow
 
 ------------------------ Store --------------------------------
 
