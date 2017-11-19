@@ -12,31 +12,33 @@ minusChar = string "-"
 plusChar = string "+"
 multChar = string "*"
 powChar = string "^"
-lpar = string "("
-rpar = string ")"
+-- lpar = char '('
+-- rpar = char ')'
+-- dotChar = char '.'
 -- sinString = string "sin"
 
 uniChar = minusChar -- <|> sinString
 binChar = plusChar <|> multChar <|> powChar
 ---------------------------------- Parseur ----------------------------------------
 
+expr_no_op :: Parser Expr
+expr_no_op = try uni <|> constante <|> var
+
 expr ::  Parser Expr
-expr = try bin <|> uni <|> constante <|> var
+expr = try bin <|> expr_no_op
 
 bin :: Parser Expr
 bin = do
-    lpar
-    e1 <- expr
+    e1 <- expr_no_op
     op <- binChar
     e2 <- expr
-    rpar
-    return (Bin (getBinOp op) e1 e2)
+    return (Bin op e1 e2)
     
 uni :: Parser Expr
 uni = do
     op <- uniChar
     e <- expr
-    return (Uni (getUniOp op) e)
+    return (Uni op e)
     
 -- Fonction venant de : https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/parsing-floats-with-parsec
 number = many1 digit
@@ -50,11 +52,32 @@ constante :: Parser Expr
 constante = do
     x <- readConstante
     return (Const x)
+{-
+ci :: Parser Expr
+ci = do
+    i <- oneOf "123456789"
+    nt <- many digit
+    return (Const (read (i:nt)))
+
+cf :: Parser Expr
+cf = do
+    i <- oneOf "123456789"
+    nt <- many digit
+    f <- dotChar
+    l <- oneOf "0123456789"
+    oat <- many digit
+    return (Const (read ((i:nt)++(f:l:oat))))
+    
+
+constante :: Parser Expr
+constante = cf
+-}
 
 var :: Parser Expr
 var = do
-    s <- many letter
-    return (Variable s)
+    head <- letter
+    tail <- many letter
+    return (Variable (head:tail))
 
 ------------------------------ parseExpression ------------------------------------
 

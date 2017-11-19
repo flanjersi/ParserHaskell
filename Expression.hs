@@ -1,45 +1,23 @@
 module Expression where
 
-{-
-1. Doit on mettre dans des modules différents ?
-2. Est ce qu'on doit changer la grammaire ? pour éviter d'avoir des parenthèse obligatoire pour le parseur
-3. Doit on mettre les déclarations dans un fichier à part ?
-4. getOperator vs map
-5. Op2 & Op1 en tant que class ?
--}
-
 ------------------------ Expr ---------------------------
 
 data Expr = Const Float
     | Variable String
-    | Uni Op1 Expr
-    | Bin Op2 Expr Expr
+    | Uni String Expr
+    | Bin String Expr Expr
     deriving Show
 
-data Op1 = Minus | Sin deriving Show
-data Op2 = Add | Mult | Pow deriving Show
-
 --Helpers
-getOperatorFromOp1 :: Num a => Op1 -> (a -> a)
-getOperatorFromOp1 op = case op of
-    Minus -> negate
-    
-getOperatorFromOp2 :: Floating a => Op2 -> (a -> a -> a)
-getOperatorFromOp2 op = case op of
-    Add -> (+)
-    Mult -> (*)
-    Pow -> (**)
-    
-getUniOp :: String -> Op1
+getUniOp :: Floating a => String -> (a -> a)
 getUniOp op = case op of
-    "-" -> Minus
-    -- "sin" -> Sin
+    "-" -> negate
 
-getBinOp :: String -> Op2
+getBinOp :: Floating a => String -> (a -> a -> a)
 getBinOp op = case op of
-    "+" -> Add
-    "*" -> Mult
-    "^" -> Pow
+    "+" -> (+)
+    "*" -> (*)
+    "^" -> (**)
 
 ------------------------ Store --------------------------------
 
@@ -64,13 +42,13 @@ eval s expr = case expr of
     Const c -> Just c
     Variable v -> findVar s v
     Uni o e -> let r = eval s e in
-               let op = getOperatorFromOp1 o in
+               let op = getUniOp o in
                case r of
                     Nothing -> Nothing
                     Just v -> Just (op v)
     Bin o e1 e2 -> let r1 = eval s e1 in
                    let r2 = eval s e2 in
-                   let op = getOperatorFromOp2 o in
+                   let op = getBinOp o in
                    case (r1, r2) of
                        (Just v1, Just v2) -> Just (op v1 v2)
                        (_, _) -> Nothing
