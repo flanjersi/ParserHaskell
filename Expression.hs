@@ -6,7 +6,7 @@ data Expr = Const Float
     | Variable String
     | Uni String Expr
     | Bin String Expr Expr
-    deriving Show
+    deriving (Show, Eq)
 
 --Helpers
 getUniOp :: Floating a => String -> (a -> a)
@@ -27,7 +27,7 @@ initStore :: Store
 initStore = []
 
 addToStore :: Store -> String -> Float -> Store
-addToStore store var val = (var, val):store
+addToStore s var val = (var, val):s
 
 findVar :: Store -> String -> Maybe Float
 findVar store var = case store of

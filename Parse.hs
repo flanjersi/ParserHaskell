@@ -14,7 +14,7 @@ type  Parser a = Parsec String () a
 lpar = char '('
 rpar = char ')'
 
-term = expr_par <|> constante <|> var <?> "bonjour" 
+term = expr_par <|> constante <|> var 
 
 expr_par = do
     lpar
@@ -23,16 +23,17 @@ expr_par = do
     return e
 
 -- Fonction venant de : https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/parsing-floats-with-parsec
--- number = Text.Parsec.try (many1 digit)
--- decima = option "" $ (:) <$> char '.' <*> number
+number = Text.Parsec.try (many1 digit)
+decima = option "" $ (:) <$> char '.' <*> number
 
--- readConstante = fmap rd $ (++) <$> number <*> decima
-        -- where rd = read :: String -> Float
+readConstante = fmap rd $ (++) <$> number <*> decima
+        where rd = read :: String -> Float
 
--- constante = do 
-    -- x <- readConstante
-    -- return (Const x)
+constante = do 
+    x <- readConstante
+    return (Const x)
 
+    
 var = do
     head <- letter
     tail <- many letter

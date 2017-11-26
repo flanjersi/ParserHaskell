@@ -13,7 +13,7 @@ isCommand xs =
 processExpression line =
     let parsedLine = parseExpression line in
     eval store (fromJust parsedLine)
-
+    
 main = do
     putStr "> "
     line <- getLine
