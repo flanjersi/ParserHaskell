@@ -56,7 +56,11 @@ var = do
 
 ------------------------ OPERATOR
 
-table = [   [prefix "-" (Uni "-")],
+table = [   [   prefix "-" (Uni "-"),
+                prefix "sin" (Uni "sin"),
+                prefix "cos" (Uni "cos"),
+                prefix "acos" (Uni "acos")
+            ],
             [binary "*" (Bin "*") AssocLeft, binary "^" (Bin "^") AssocLeft, binary "/" (Bin "/") AssocLeft],
             [binary "+" (Bin "+") AssocLeft]
         ]
@@ -72,9 +76,9 @@ term = Text.Parsec.try expr_par <|> constante <|> var
 
 expr = buildExpressionParser table term
 
-parseExpression :: String -> Maybe Expr
+parseExpression :: String -> Either String Expr
 parseExpression s =
     let r = parse expr "" (filter (not . isSpace) s) in
     case r of
-        Right e -> Just e
-        Left e -> Nothing
+        Right e -> Right e
+        Left e -> Left "Il y a une erreur dans l'expression"

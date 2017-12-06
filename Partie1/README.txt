@@ -9,10 +9,9 @@ Ce qui a été accompli :
 - module Expression : Fait
 - Test des expressions : Fait
 - module Parse : Fait
-- module EnvInteractif : Fait
-
 - Test du parser : Fait
-- Test de l'environnement interactif : Fait
+- module EnvInteractif : Fait
+- Test de l'environnement interactif : Pas fait, nos fonctions retournent toutes un IO Store donc pas très utile de tester ce qu'elle renvoie.
 
 Sources vers les codes qui nous ont inspirés :
 -Nous avons seulement regardé des exemples pour utiliser buildExpressionParser

@@ -1,10 +1,12 @@
 module EnvInteractif where
 
 import Data.List.Split
+import Data.Either
 import Parse
 import Expression
-import Data.Maybe
 import System.Exit
+import System.IO
+import Control.Exception
 
 ---------------------------------- COMMANDES ----------------------------------
 type Handler = [String] -> Store -> IO Store
@@ -12,13 +14,13 @@ type Handler = [String] -> Store -> IO Store
 data  Command = Command {
     name :: String, -- Nom de la  commande
     description  :: String, -- Description  de la  commande
-    run ::  Handler  -- Le code à executer
+    run ::  EnvInteractif.Handler  -- Le code à executer
 }
 
 ------------------------------------------------QUIT
 quitCommand = Command {
     name = "q",
-    description = "Quitte le programme",
+    description = "Quitte le programme. :q",
     run = quitFct
 }
 
@@ -28,7 +30,7 @@ quitFct args store = exitSuccess
 
 helpCommand = Command {
     name = "h",
-    description = "Affiche les commandes et leur description",
+    description = "Affiche les commandes et leur description. :h",
     run = helpFct
 }
 
@@ -44,7 +46,7 @@ printDescriptions command = case command of
 
 storeCommand = Command {
     name = "store",
-    description = "Affiche ce qui est dans le store",
+    description = "Affiche ce qui est dans le store. :store",
     run = storeFct
 }
 
@@ -60,7 +62,7 @@ printStore store = case store of
 
 setCommand = Command {
     name = "set",
-    description = "Set la variable x à la valeur a",
+    description = "Set la variable x à la valeur a. :set x 1",
     run = setFct
 }
 
@@ -71,7 +73,7 @@ setFct args store =
 
 unsetCommand = Command {
     name = "unset",
-    description = "Enleve la variable x du store",
+    description = "Enleve la variable x du store. :unset x",
     run = unsetFct
 }
 
@@ -82,7 +84,7 @@ unsetFct args store =
 
 unsetAllCommand = Command {
     name = "unsetAll",
-    description = "Vide le store",
+    description = "Vide le store. :unsetAll",
     run = unsetAllFct
 }
 
@@ -92,46 +94,67 @@ unsetAllFct args store =
 ------------------------------------------------LOAD
 
 loadCommand = Command {
-    name = "load",
-    description = "Execute les expressions et commandes d'un fichier",
+    name = "l",
+    description = "Execute les expressions et commandes d'un fichier. :l filename",
     run = loadFct
 }
-
+      
 loadFct args store = do
-    contents <- readFile (head args)
-    executeLines (lines contents) store
+    contents <- try (readFile (head args)) :: IO (Either IOException String)
+    case contents of
+        Left ex -> putStrLn "Ce fichier n'existe pas" >> return store
+        Right text -> executeLines (lines text) store
+
+------------------------------------------------INFO
+
+infoCommand = Command {
+    name = "info",
+    description = "A partir d'une string, affiche son expression sans l'évaluer. Il ne doit pas y avoir d'espace dans l'expression. :info 1+1*3",
+    run = infoFct
+}
+
+infoFct args store =
+    let parsedLine = parseExpression (head args) in
+    putStrLn (show parsedLine) >>
+    return store
 
 -----------------------
 
 commands :: [Command]
-commands = [helpCommand, storeCommand, setCommand, unsetCommand, unsetAllCommand, loadCommand, quitCommand]
+commands = [helpCommand, storeCommand, setCommand, unsetCommand, unsetAllCommand, loadCommand, quitCommand, infoCommand]
 
 isCommand :: [Char] -> Bool
 isCommand [] = False
 isCommand xs =
     if head xs == ':' then True else False
 
-getCommand :: [Command] -> String -> Maybe Command
+getCommand :: [Command] -> String -> Either String Command
 getCommand cs nameCommand = case cs of
-    [] -> Nothing
-    (x:xs) -> if name x == nameCommand then Just x else getCommand xs nameCommand
+    [] -> Left (nameCommand ++ " n'est pas une commande. :h pour afficher la liste des commandes")
+    (x:xs) -> if name x == nameCommand then Right x else getCommand xs nameCommand
     
 ------------------------------------------------
 
 processExpression :: String -> Store -> IO Store
 processExpression line store =
     let parsedLine = parseExpression line in
-    putStrLn (show (fromJust (eval store (fromJust parsedLine)))) >>
-    return store
+    case parsedLine of
+        Left ex -> putStrLn ex >> return store
+        Right expr -> let result = eval store expr in
+                      case result of
+                        Left ex -> putStrLn ex >> return store
+                        Right r -> putStrLn (show r) >>
+                                   return store
 
 processCommand :: String -> Store -> IO Store
 processCommand line s =
     let args = splitOn " " line in
     let c = getCommand commands (head args) in
     case c of
-        Nothing -> return s
-        Just comm -> run comm (tail args) s
+        Left ex -> putStrLn ex >> return s
+        Right comm -> run comm (tail args) s
     
+executeLines :: [String] -> Store -> IO Store
 executeLines lines s = case lines of
     [] -> return s
     [x] -> executeLine x s
@@ -139,6 +162,7 @@ executeLines lines s = case lines of
               store <- executeLine x s
               executeLines xs store
     
+executeLine :: String -> Store -> IO Store
 executeLine line s =
     if isCommand line == False
         then do processExpression line s
@@ -146,8 +170,10 @@ executeLine line s =
       
 ------------------------------------------------ MAIN
       
-main s = do
+launchEnvInteractif s = do
     putStr "> "
     line <- getLine
     store <- executeLine line s
-    main store
+    launchEnvInteractif store
+    
+main = launchEnvInteractif []

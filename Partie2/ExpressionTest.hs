@@ -1,26 +1,32 @@
 import Test.HUnit
 import Expression
 
-tests = TestList [  TestLabel "testFindVarNotOK1" test1,
-                    TestLabel "testFindVarNotOK2" test2,
-                    TestLabel "testFindVarOK1" test3,
-                    TestLabel "testFindVarOK2" test4,
-                    TestLabel "testEvalNotOK" test5,
-                    TestLabel "testEvalOK" test6,
-                    TestLabel "testEvalOK" test7]
+tests = TestList [  TestLabel "testValueVarNotOK1" testS1,
+                    TestLabel "testValueVarNotOK2" testS2,
+                    TestLabel "testValueVarOK1" testS3,
+                    TestLabel "testValueVarOK2" testS4,
+                    TestLabel "testAddVarOK" testS5,
+                    TestLabel "testRemoveVarOK" testS6,
+                    TestLabel "testEvalNotOK" testE1,
+                    TestLabel "testEvalOK" testE2,
+                    TestLabel "testEvalOK" testE3
+                 ]
 
-------------------------------------Test findVar
-test1 = TestCase (assertEqual "find var x" (Nothing) (findVar [] "x"))
-test2 = TestCase (assertEqual "find var x" (Nothing) (findVar [("y",1)] "x"))
+------------------------------------Test store
+testS1 = TestCase (assertEqual "value var x" (Nothing) (valueVar [] "x"))
+testS2 = TestCase (assertEqual "value var x" (Nothing) (valueVar [("y",1)] "x"))
 
-test3 = TestCase (assertEqual "find var x" (Just 1.0) (findVar [("x",1)] "x"))
-test4 = TestCase (assertEqual "find var x" (Just 2.0) (findVar [("y",1), ("x",2)] "x"))
+testS3 = TestCase (assertEqual "value var x" (Just 1.0) (valueVar [("x",1)] "x"))
+testS4 = TestCase (assertEqual "value var x" (Just 2.0) (valueVar [("y",1), ("x",2)] "x"))
+
+testS5 = TestCase (assertEqual "value var x" (Just 1.0) (valueVar (addToStore [] "x" 1) "x"))
+testS6 = TestCase (assertEqual "value var x" (Nothing) (valueVar (removeFromStore [("y",1), ("x",2)] "x") "x"))
 
 ------------------------------------Test eval
 
-e1 = Bin "+" (Bin "*" (Bin "+" (Const 5.0) (Const 3.0)) (Const 18.0)) (Uni "-" (Const 4.0))
-e2 = Bin "+" (Bin "*" (Bin "+" (Variable "a") (Const 3.0)) (Const 18.0)) (Uni "-" (Const 4.0))
+e1 = Bin "+" (Bin "*" (Bin "+" (Const 5.0) (Const 3.0)) (Const 18.0)) (Uni "sin" (Const 4.0))
+e2 = Bin "+" (Bin "*" (Bin "+" (Variable "a") (Const 3.0)) (Const 18.0)) (Uni "sin" (Const 4.0))
 
-test5 = TestCase (assertEqual "eval with var " (Nothing) (eval [] e2))
-test6 = TestCase (assertEqual "eval with var" (Just 140) (eval [("a", 5)] e2))
-test7 = TestCase (assertEqual "eval without var" (Just 140) (eval [] e1))
+testE1 = TestCase (assertEqual "eval with var " (Nothing) (eval [] e2))
+testE2 = TestCase (assertEqual "eval with var" (Just 143.2432) (eval [("a", 5)] e2))
+testE3 = TestCase (assertEqual "eval without var" (Just 143.2432) (eval [] e1))

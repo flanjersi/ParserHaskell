@@ -78,29 +78,6 @@ unsetCommand = Command {
 unsetFct args store =
     return (removeFromStore store (head args))
 
-------------------------------------------------UNSETALL
-
-unsetAllCommand = Command {
-    name = "unsetAll",
-    description = "Vide le store",
-    run = unsetAllFct
-}
-
-unsetAllFct args store =
-    return initStore
-
-------------------------------------------------LOAD
-
-loadCommand = Command {
-    name = "load",
-    description = "Execute les expressions et commandes d'un fichier",
-    run = loadFct
-}
-
-loadFct args store = do
-    contents <- readFile (head args)
-    executeLines (lines contents) store
-
 -----------------------
 
 commands :: [Command]
@@ -138,6 +115,7 @@ processCommand line s =
         Nothing -> return s
         Just comm -> run comm (tail args) s
     
+executeLines :: [String] -> Store -> IO Store
 executeLines lines s = case lines of
     [] -> return s
     [x] -> executeLine x s
@@ -145,6 +123,7 @@ executeLines lines s = case lines of
               store <- executeLine x s
               executeLines xs store
     
+executeLine :: String -> Store -> IO Store
 executeLine line s =
     if isCommand line == False
         then do processExpression line s
@@ -152,8 +131,10 @@ executeLine line s =
       
 ------------------------------------------------ MAIN
       
-main s = do
+launchEnvInteractif s = do
     putStr "> "
     line <- getLine
     store <- executeLine line s
-    main store
+    launchEnvInteractif store
+    
+main = launchEnvInteractif []
