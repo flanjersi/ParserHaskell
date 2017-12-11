@@ -1,3 +1,5 @@
+module Main where
+
 import Test.HUnit
 import Parse
 import Expression
@@ -23,3 +25,5 @@ expr2 = Just (Bin "+" (Bin "*" (Bin "+" (Variable "a") (Const 3.0)) (Const 18.0)
 
 test5 = TestCase (assertEqual "parse expr without var" (expr1) (parseExpression e1))
 test6 = TestCase (assertEqual "parse expr with var" (expr2) (parseExpression e2))
+
+main = runTestTT tests

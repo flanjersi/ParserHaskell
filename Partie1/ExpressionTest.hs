@@ -1,3 +1,5 @@
+module Main where
+
 import Test.HUnit
 import Expression
 
@@ -30,3 +32,5 @@ e2 = Bin "+" (Bin "*" (Bin "+" (Variable "a") (Const 3.0)) (Const 18.0)) (Uni "-
 testE1 = TestCase (assertEqual "eval with var " (Nothing) (eval [] e2))
 testE2 = TestCase (assertEqual "eval with var" (Just 140) (eval [("a", 5)] e2))
 testE3 = TestCase (assertEqual "eval without var" (Just 140) (eval [] e1))
+
+main = runTestTT tests

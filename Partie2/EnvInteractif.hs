@@ -1,4 +1,4 @@
-module EnvInteractif where
+module Main where
 
 import Data.List.Split
 import Data.Either
@@ -14,7 +14,7 @@ type Handler = [String] -> Store -> IO Store
 data  Command = Command {
     name :: String, -- Nom de la  commande
     description  :: String, -- Description  de la  commande
-    run ::  EnvInteractif.Handler  -- Le code à executer
+    run ::  Main.Handler  -- Le code à executer
 }
 
 ------------------------------------------------QUIT
@@ -41,7 +41,7 @@ helpFct args store =
 printDescriptions command = case command of
     [] -> putStr ""
     (x:xs) -> putStrLn (name x ++ ": " ++ description x) >> printDescriptions xs
-    
+
 ------------------------------------------------STORE
 
 storeCommand = Command {
@@ -53,7 +53,7 @@ storeCommand = Command {
 storeFct args store =
     printStore store >>
     return store
-    
+
 printStore store = case store of
     [] -> putStr ""
     ((var, val):xs) -> putStrLn (var ++ " = " ++ (show val)) >> printStore xs
@@ -68,7 +68,7 @@ setCommand = Command {
 
 setFct args store =
     return (addToStore store (head args) (read (args !! 1) :: Float))
-    
+
 ------------------------------------------------UNSET
 
 unsetCommand = Command {
@@ -167,9 +167,9 @@ executeLine line s =
     if isCommand line == False
         then do processExpression line s
         else do processCommand (tail line) s
-      
+
 ------------------------------------------------ MAIN
-      
+
 launchEnvInteractif s = do
     putStr "> "
     line <- getLine
